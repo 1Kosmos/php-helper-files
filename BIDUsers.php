@@ -6,7 +6,7 @@
  *    https://github.com/1Kosmos/1Kosmos_License/blob/main/LICENSE.txt
  */
  <?php
-require_once("./BIDSDK.php");
+require_once("./BIDTenant.php");
 require_once("./BIDECDSA.php");
 require_once("./WTM.php");
 require_once("./InMemCache.php");
@@ -14,16 +14,13 @@ require_once("./InMemCache.php");
 class BIDUsers
 {
 
-    private static $ttl = 60;
+    public static function fetchUserByDID($tenantInfo, $did, $fetchDevices) {
+        $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
 
-    public static function fetchUserByDID($did, $fetchDevices) {
-        $bidsdk         = BIDSDK::getInstance();
-        $communityInfo  = $bidsdk->getCommunityInfo();
-        
-        $keySet         = $bidsdk->getKeySet();
-        $licenseKey     = $bidsdk->getLicense();
-        $sd             = $bidsdk->getSD();
-        
+        $keySet         = $bidTenant->getKeySet();
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $communityInfo["community"]["publicKey"]);
         
@@ -46,7 +43,6 @@ class BIDUsers
         if ($fetchDevices) {
             $url = $url . "?devicelist=true";
         }
-      
 
         $ret = null;
         $response = WTM::executeRequest("GET"
@@ -64,7 +60,5 @@ class BIDUsers
         return $ret;
 
     }
-    
 }
-
 ?>
