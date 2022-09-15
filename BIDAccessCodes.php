@@ -85,5 +85,124 @@ class BIDAccessCode
 
         return $ret;
     }
+
+    private static function fetchAccessCode($tenantInfo, $code)
+    {
+        $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
+
+        $keySet         = $bidTenant->getKeySet();
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $communityInfo["community"]["publicKey"]);
+
+        $requestid = array(
+            "appId" => "blockid.php.sdk",
+            "uuid" => uniqid(),
+            "ts" => time()
+        );
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            'X-tenantTag' => $communityInfo["tenant"]["tenanttag"],
+            "publickey" => $keySet["publicKey"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+        );
+
+        $ret = WTM::executeRequestV2(
+            "GET",
+            $sd["adminconsole"] . "/api/r1/acr/community/" . $communityInfo["community"]["name"] . "/" . $code,
+            $headers,
+            null,
+            false
+        );
+
+        $status = $ret["statusCode"];
+        $ret = json_decode($ret["response"], true);
+
+        if (isset($ret["data"])) {
+            $dec_data = BIDECDSA::decrypt($ret["data"], $sharedKey);
+            $ret = json_decode($dec_data, true);
+        }
+
+        $ret["statusCode"] = $status;
+
+        return $ret;
+    }
+
+    public static function verifyAndRedeemEmailVerificationCode($tenantInfo, $code)
+    {
+
+        if (empty($code)) {
+            return array(
+                "statusCode" => 400,
+                "message" => "code is required parameter"
+            );
+        }
+
+        $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
+
+        $keySet         = $bidTenant->getKeySet();
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+
+        $access_code_response = self::fetchAccessCode($tenantInfo, $code);
+
+        if ($access_code_response["statusCode"] !== 200) {
+            return $access_code_response;
+        }
+
+        if ($access_code_response["type"] !== "verification_link") {
+            return array(
+                "statusCode" => 400,
+                "message" => "Provided verification code is invalid type"
+            );
+        }
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $communityInfo["community"]["publicKey"]);
+
+        $requestid = array(
+            "appId" => "blockid.php.sdk",
+            "uuid" => uniqid(),
+            "ts" => time()
+        );
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            'X-tenantTag' => $communityInfo["tenant"]["tenanttag"],
+            "publickey" => $keySet["publicKey"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+        );
+
+        $body = (object)[];
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $sd["adminconsole"] . "/api/r1/acr/community/" . $communityInfo["community"]["name"] . "/" . $code . "/redeem",
+            $headers,
+            $body,
+            false
+        );
+
+        $status = $ret["statusCode"];
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], true);
+        }
+
+        if($status === 200){
+           $ret = array_merge((array) $ret, (array) $access_code_response);
+           $ret["status"] = "redeemed";
+        }
+        $ret["statusCode"] = $status;
+        return $ret;
+    }
 }
 ?>
