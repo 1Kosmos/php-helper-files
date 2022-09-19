@@ -46,3 +46,10 @@ require_once("./BIDAccessCodes.php");
 
 $requestEmailVerificationResponse = BIDAccessCode::requestEmailVerificationLink("$tenantInfo", "$emailTo", "$emailTemplateB64OrNull", "$emailSubjectOrNull", "$createdBy", "$ttl_seconds_or_null");
 ```
+
+Verify and Redeem Email verification link\
+```
+require_once("./BIDAccessCodes.php");
+
+$redeemVerificationCodeResponse = BIDAccessCode::verifyAndRedeemEmailVerificationCode("$tenantInfo", "$code");
+```
