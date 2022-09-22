@@ -81,5 +81,73 @@ class BIDWebAuthn
 
         return $ret;
     }
+
+    public static function fetchAssertionOptions($tenantInfo, $optionsRequest)
+    {
+        $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
+
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+        $additionalData = array("communityId" => $communityInfo["community"]["id"], "tenantId" => $communityInfo["tenant"]["id"]);
+
+        $body = array_merge((array) $optionsRequest, (array) $additionalData);
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "licensekey" => $licenseKey,
+            "requestid" => uniqid()
+        );
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $sd["webauthn"] . "/u1/assertion/options",
+            $headers,
+            $body,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+        }
+
+        return $ret;
+    }
+
+    public static function submitAssertionResult($tenantInfo, $resultRequest)
+    {
+        $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
+
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+        $additionalData = array("communityId" => $communityInfo["community"]["id"], "tenantId" => $communityInfo["tenant"]["id"]);
+
+        $body = array_merge((array) $resultRequest, (array) $additionalData);
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "licensekey" => $licenseKey,
+            "requestid" => uniqid()
+        );
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $sd["webauthn"] . "/u1/assertion/result",
+            $headers,
+            $body,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+        }
+
+        return $ret;
+    }
 }
 ?>
