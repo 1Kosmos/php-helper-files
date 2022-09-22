@@ -82,7 +82,7 @@ require_once("./BIDWebAuthn.php");
 
 $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
 
-$optionsRequest = array(
+$resultRequest = array(
     "rawId" => "<rawId>",
     "response" => array(
         "attestationObject" => "<attestationObject>",
@@ -99,7 +99,7 @@ $optionsRequest = array(
     "dns" => "<current domain>"
 );
 
-$attestationResultResponse = BIDWebAuthn::submitAttestationResult($tenantInfo, $optionsRequest);
+$attestationResultResponse = BIDWebAuthn::submitAttestationResult($tenantInfo, $resultRequest);
 ```
 
 Request Email verification link
