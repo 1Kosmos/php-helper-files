@@ -137,7 +137,7 @@ $resultRequest = array(
     "dns" => "<current domain>"
 );
 
-let assertionResultResponse = await BIDWebAuthn.submitAssertionResult($tenantInfo, $resultRequest);
+$assertionResultResponse = BIDWebAuthn::submitAssertionResult($tenantInfo, $resultRequest);
 
 ```
 
