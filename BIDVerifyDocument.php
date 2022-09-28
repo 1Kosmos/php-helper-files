@@ -44,6 +44,61 @@ class BIDVerifyDocument
         return $response["publicKey"];
     }
 
+    public static function verifyDocument($tenantInfo, $dvcId, $verifications, $document)
+    {
+        $bidTenant      = BIDTenant::getInstance();
+        $keySet         = $bidTenant->getKeySet();
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+        $sessionsPublicKey = self::getDocVerifyPublicKey($tenantInfo);
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $sessionsPublicKey);
+
+        $requestid = array(
+            "appId" => "blockid.php.sdk",
+            "uuid" => uniqid(),
+            "ts" => time()
+        );
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "publickey" => $keySet["publicKey"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+        );
+
+        $body = array(
+            "dvcID" => $dvcId,
+            "verifications" => $verifications,
+            "document" => $document
+        );
+
+        $encryptedData = array(
+            "data" => BIDECDSA::encrypt(json_encode($body), $sharedKey)
+        );
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $sd["docuverify"] . "/verify",
+            $headers,
+            $encryptedData,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+
+            if (isset($ret["data"])) {
+                $dec_data = BIDECDSA::decrypt($ret["data"], $sharedKey);
+                $ret = json_decode($dec_data, TRUE);
+            }
+        }
+
+        return $ret;
+    }
+
     public static function createDocumentSession($tenantInfo, $dvcId, $documentType)
     {
         $bidTenant      = BIDTenant::getInstance();
@@ -96,6 +151,60 @@ class BIDVerifyDocument
 
         if (isset($ret["response"])) {
             $ret = json_decode($ret["response"], TRUE);
+        }
+
+        return $ret;
+    }
+
+    public static function pollSessionResult($tenantInfo, $dvcId, $sessionId)
+    {
+        $bidTenant      = BIDTenant::getInstance();
+        $keySet         = $bidTenant->getKeySet();
+        $licenseKey     = $tenantInfo["licenseKey"];
+        $sd             = $bidTenant->getSD($tenantInfo);
+
+        $sessionsPublicKey = self::getDocVerifyPublicKey($tenantInfo);
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $sessionsPublicKey);
+
+        $requestid = array(
+            "appId" => "blockid.php.sdk",
+            "uuid" => uniqid(),
+            "ts" => time()
+        );
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "publickey" => $keySet["publicKey"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+        );
+
+        $body = array(
+            "dvcID" => $dvcId,
+            "sessionId" => $sessionId
+        );
+
+        $encryptedData = array(
+            "data" => BIDECDSA::encrypt(json_encode($body), $sharedKey)
+        );
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $sd["docuverify"] . "/document_share_session/result",
+            $headers,
+            $encryptedData,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+
+            if (isset($ret["data"])) {
+                $dec_data = BIDECDSA::decrypt($ret["data"], $sharedKey);
+                $ret = json_decode($dec_data, TRUE);
+            }
         }
 
         return $ret;
