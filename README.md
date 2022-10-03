@@ -102,6 +102,45 @@ $resultRequest = array(
 $attestationResultResponse = BIDWebAuthn::submitAttestationResult($tenantInfo, $resultRequest);
 ```
 
+FIDO device authentication options
+```
+require_once("./BIDWebAuthn.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$optionsRequest = array(
+    "username" => "<username>",
+    "displayName" => "<displayName>",
+    "dns" => "<current domain>"
+);
+
+$assertionOptionsResponse = BIDWebAuthn::fetchAssertionOptions($tenantInfo, $optionsRequest);
+```
+
+FIDO device authentication result
+```
+require_once("./BIDWebAuthn.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$resultRequest = array(
+    "rawId" => "<rawId>",
+    "response" => array(
+        "authenticatorData" => "<authenticatorData>",
+        "signature" => "<signature>",
+        "userHandle" => "<userHandle>",
+        "clientDataJSON" => "<clientDataJSON>"
+    ),
+    "getClientExtensionResults" => "<getClientExtensionResults>",
+    "id" => "<id>",
+    "type" => "<type>",
+    "dns" => "<current domain>"
+);
+
+$assertionResultResponse = BIDWebAuthn::submitAssertionResult($tenantInfo, $resultRequest);
+
+```
+
 Request Email verification link
 ```
 require_once("./BIDAccessCodes.php");
