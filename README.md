@@ -158,3 +158,17 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 
 $redeemVerificationCodeResponse = BIDAccessCode::verifyAndRedeemEmailVerificationCode($tenantInfo, "$code");
 ```
+
+Create new Driver's License verification session
+```
+require_once("./BIDVerifyDocument.php");
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+$createdSessionResponse = BIDVerifyDocument::createDocumentSession($tenantInfo, "$dvcId", "$documentType");
+```
+
+Trigger SMS
+```
+require_once("./BIDMessaging.php");
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+$smsResponse = BIDMessaging::sendSMS($tenantInfo, "$smsTo", "$smsISDCode", "$smsTemplateB64");
+```
