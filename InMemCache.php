@@ -1,21 +1,23 @@
-/**
+<!--
  * Copyright (c) 2018, 1Kosmos Inc. All rights reserved.
  * Licensed under 1Kosmos Open Source Public License version 1.0 (the "License");
- * You may not use this file except in compliance with the License. 
- * You may obtain a copy of this license at 
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of this license at
  *    https://github.com/1Kosmos/1Kosmos_License/blob/main/LICENSE.txt
- */
- <?php
+-->
+
+<?php
 
 class InMemCache
 {
-    public static function set($value, $key, $ttl) {
+    public static function set($value, $key, $ttl)
+    {
         if (!isset($key)) {
             return;
         }
 
         $_SESSION[$key] = $value;
-        
+
         $tos_key = $key . "::tos"; //time of storage
         $_SESSION[$tos_key] = time();
 
@@ -26,10 +28,10 @@ class InMemCache
             $_SESSION[$tos_key] = null;
             $_SESSION[$ttl_key] = null;
         }
-
     }
 
-    public static function get($key) {
+    public static function get($key)
+    {
         if (!isset($key)) {
             return null;
         }
@@ -55,9 +57,7 @@ class InMemCache
         }
 
         return $ret;
-
     }
-
 }
 
 ?>
