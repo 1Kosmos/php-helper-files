@@ -215,8 +215,6 @@ class BIDVerifiableCredential
             "vcs" => $vcs
         );
 
-        echo "vcs:::" . $sd["vcs"] . "<br/>";
-
         $ret = WTM::executeRequestV2(
             "POST",
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vp/create",
