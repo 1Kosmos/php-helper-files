@@ -257,3 +257,21 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 
 $vcStatus = BIDVerifiableCredential::getVcStatusById($tenantInfo, "$vcId");
 ```
+
+Request OAuth2 authorization code
+```
+require_once("./BIDOauth2.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$authorizationCodeResponse = BIDOauth2::requestAuthorizationCode($tenantInfo, "$proofOfAuthenticationJwt", "$clientId", "$responseType", "$scope", "$redirectUri", "$stateOrNull", "$nonceOrNull");
+```
+
+Request OAuth2 Tokens
+```
+require_once("./BIDOauth2.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$requestTokenResponse = BIDOauth2::requestToken($tenantInfo, "$clientId", "$clientSecret", "$grantType", "$redirectUri", "$codeOrNull", "$refreshTokenOrNull");
+```
