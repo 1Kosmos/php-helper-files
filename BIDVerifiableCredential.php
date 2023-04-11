@@ -182,7 +182,7 @@ class BIDVerifiableCredential
         return $ret;
     }
 
-    public static function requestVPForCredentials($tenantInfo, $vcs)
+    public static function requestVPForCredentials($tenantInfo, $vcs, $createShareUrl)
     {
         $bidTenant      = BIDTenant::getInstance();
         $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
@@ -211,6 +211,10 @@ class BIDVerifiableCredential
         $body = array(
             "vcs" => $vcs
         );
+
+        if(isset($createShareUrl)) {
+            $body["createShareUrl"] = $createShareUrl;
+        }
 
         $ret = WTM::executeRequestV2(
             "POST",
