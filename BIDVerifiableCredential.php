@@ -15,15 +15,12 @@ require_once("./InMemCache.php");
 class BIDVerifiableCredential
 {
     private static $ttl = 60;
-    private static function getVcsPublicKey($tenantInfo)
+    private static function getVcsPublicKey($baseUrl)
     {
-        $bidTenant      = BIDTenant::getInstance();
-        $sd             = $bidTenant->getSD($tenantInfo);
-
-        $url = $sd["vcs"] . "/publickeys";
+        $pubicKeyUrl = $baseUrl . "/publickeys";
 
         $response = null;
-        $responseStr = InMemCache::get($url);
+        $responseStr = InMemCache::get($pubicKeyUrl);
         if (isset($responseStr)) {
             $response = json_decode($responseStr, TRUE);
         }
@@ -31,13 +28,13 @@ class BIDVerifiableCredential
         if (!isset($responseStr)) { //no cache available.. fetch again
             $response = WTM::executeRequest(
                 "GET",
-                $url,
+                $pubicKeyUrl,
                 array("Content-Type" => "application/json", "charset" => "utf-8"),
                 null,
                 false
             );
 
-            InMemCache::set(json_encode($response), $url, self::$ttl);
+            InMemCache::set(json_encode($response), $pubicKeyUrl, self::$ttl);
         }
 
         return $response["publicKey"];
@@ -51,7 +48,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -99,7 +96,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -148,7 +145,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -193,7 +190,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -239,7 +236,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -284,7 +281,7 @@ class BIDVerifiableCredential
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $vcsPublicKey = self::getVcsPublicKey($tenantInfo);
+        $vcsPublicKey = self::getVcsPublicKey($sd["vcs"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $vcsPublicKey);
 
@@ -307,6 +304,81 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vc/" . $vcId . "/status",
             $headers,
             null,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+        }
+
+        return $ret;
+    }
+
+    public static function getVPWithDownloadUri($licenseKey, $keySet, $downloadUri, $requestID)
+    {
+
+        $serviceUrl =  "https://" . parse_url($downloadUri, PHP_URL_HOST) . "/vcs";
+
+        $vcsPublicKey = self::getVcsPublicKey($serviceUrl);
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["keySecret"], $vcsPublicKey);
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "publickey" => $keySet["keyId"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestID), $sharedKey)
+        );
+
+        $ret = WTM::executeRequestV2(
+            "GET",
+            $downloadUri,
+            $headers,
+            null,
+            false
+        );
+
+        if (isset($ret["response"])) {
+            $ret = json_decode($ret["response"], TRUE);
+
+            if (isset($ret["data"])) {
+                $dec_data = BIDECDSA::decrypt($ret["data"], $sharedKey);
+                $ret = json_decode($dec_data, TRUE);
+            }
+        }
+
+        return $ret;
+    }
+
+    public static function verifyVPWithDownloadUri($licenseKey, $keySet, $downloadUri, $vp, $requestID)
+    {
+
+        $serviceUrl =  "https://" . parse_url($downloadUri, PHP_URL_HOST) . "/vcs";
+
+        $vcsPublicKey = self::getVcsPublicKey($serviceUrl);
+
+        $sharedKey = BIDECDSA::createSharedKey($keySet["keySecret"], $vcsPublicKey);
+
+        $headers = array(
+            "Content-Type" => "application/json",
+            "charset" => "utf-8",
+            "publickey" => $keySet["keyId"],
+            "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
+            "requestid" => BIDECDSA::encrypt(json_encode($requestID), $sharedKey)
+        );
+
+        $vc = $vp["verifiableCredential"][0];
+
+        $body = array(
+            "vp" => $vp
+        );
+
+        $ret = WTM::executeRequestV2(
+            "POST",
+            $serviceUrl . "/tenant/" . $vc["issuer"]["tenantId"] . "/community/" . $vc["issuer"]["communityId"] . "/vp/verify",
+            $headers,
+            $body,
             false
         );
 

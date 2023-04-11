@@ -258,6 +258,20 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 $vcStatus = BIDVerifiableCredential::getVcStatusById($tenantInfo, "$vcId");
 ```
 
+Get VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$vpResponse =  BIDVerifiableCredential::getVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$requestID");
+```
+
+Verify VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$verifiedVP =  BIDVerifiableCredential::verifyVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$vp", "$requestID");
+```
+
 Request OAuth2 authorization code
 ```
 require_once("./BIDOauth2.php");
