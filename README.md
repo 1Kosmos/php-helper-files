@@ -219,7 +219,7 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 // sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
 // example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vp_create
 
-$vpResponse = BIDVerifiableCredential::requestVPForCredentials($tenantInfo, "$vcs");
+$vpResponse = BIDVerifiableCredential::requestVPForCredentials($tenantInfo, "$vcs", "$createShareUrl");
 ```
 
 Verify verifiable presentation
@@ -256,6 +256,20 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 // example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/get_tenant__tenantId__community__communityId__vc__vcId__status
 
 $vcStatus = BIDVerifiableCredential::getVcStatusById($tenantInfo, "$vcId");
+```
+
+Get VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$vpResponse =  BIDVerifiableCredential::getVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$requestID");
+```
+
+Verify VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$verifiedVP =  BIDVerifiableCredential::verifyVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$vp", "$requestID");
 ```
 
 Request OAuth2 authorization code
