@@ -185,3 +185,107 @@ $tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licen
 
 $pollSessionResponse = BIDVerifyDocument::pollSessionResult($tenantInfo, "$dvcId", "$sessionId");
 ```
+
+Request verifiable credentials for ID
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vc_from_document__type_
+
+$issuedVerifiableCredential = BIDVerifiableCredential::requestVCForID($tenantInfo, "$type", "$document", "$userDid", "$userPublickey", "$userUrn");
+```
+
+Verify verifiable credentials
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vc_verify
+
+$verifiedVCResponse = BIDVerifiableCredential::verifyCredential($tenantInfo, "$vc");
+```
+
+Request verifiable presentation
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vp_create
+
+$vpResponse = BIDVerifiableCredential::requestVPForCredentials($tenantInfo, "$vcs", "$createShareUrl");
+```
+
+Verify verifiable presentation
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vp_verify
+
+$verifiedVP = BIDVerifiableCredential::verifyPresentation($tenantInfo, "$vp")
+```
+
+Request verifiable credentials for Payload
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/post_tenant__tenantId__community__communityId__vc_from_payload__type_
+
+$payloadVCResponse = BIDVerifiableCredential::requestVCForPayload($tenantInfo, "$type", "$issuer", "$info", "$userDid", "$userPublickey", "$userUrn");
+```
+
+Get verifiable credentials status
+```
+require_once("./BIDVerifiableCredential.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+// sample vcs object (see {tenant-dns}/vcs/docs for up to date request structure)
+// example: https://blockid-trial.1kosmos.net/vcs/docs/#/Credentials/get_tenant__tenantId__community__communityId__vc__vcId__status
+
+$vcStatus = BIDVerifiableCredential::getVcStatusById($tenantInfo, "$vcId");
+```
+
+Get VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$vpResponse =  BIDVerifiableCredential::getVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$requestID");
+```
+
+Verify VP with download URI
+```
+require_once("./BIDVerifiableCredential.php");
+
+$verifiedVP =  BIDVerifiableCredential::verifyVPWithDownloadUri("$licenseKey", "$keySet", "$downloadUri", "$vp", "$requestID");
+```
+
+Request OAuth2 authorization code
+```
+require_once("./BIDOauth2.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$authorizationCodeResponse = BIDOauth2::requestAuthorizationCode($tenantInfo, "$proofOfAuthenticationJwt", "$clientId", "$responseType", "$scope", "$redirectUri", "$stateOrNull", "$nonceOrNull");
+```
+
+Request OAuth2 Tokens
+```
+require_once("./BIDOauth2.php");
+
+$tenantInfo = array("dns" => "$dns", "communityName" => "$communityName", "licenseKey" => "$licenseKey");
+
+$requestTokenResponse = BIDOauth2::requestToken($tenantInfo, "$clientId", "$clientSecret", "$grantType", "$redirectUri", "$codeOrNull", "$refreshTokenOrNull");
+```
