@@ -56,6 +56,10 @@ class BIDTenant
 
     public function getKeySet()
     {
+        if (isset($this->keySet)) {
+            return $this->keySet;
+        }
+
         $cache_key = "bidsdk::keyset";
         if (!isset($this->keySet) && isset($_SESSION[$cache_key])) {
             $this->keySet = json_decode($_SESSION[$cache_key], TRUE);
