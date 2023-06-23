@@ -38,7 +38,8 @@ class BIDWebAuthn
             $sd["webauthn"] . "/u1/attestation/options",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -72,7 +73,8 @@ class BIDWebAuthn
             $sd["webauthn"] . "/u1/attestation/result",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -106,7 +108,8 @@ class BIDWebAuthn
             $sd["webauthn"] . "/u1/assertion/options",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -140,7 +143,8 @@ class BIDWebAuthn
             $sd["webauthn"] . "/u1/assertion/result",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {

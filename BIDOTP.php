@@ -60,6 +60,7 @@ class BIDOTP
             $sd["adminconsole"] . "/api/r2/otp/generate",
             $headers,
             $body,
+            false,
             false
         );
 
@@ -109,6 +110,7 @@ class BIDOTP
             $sd["adminconsole"] . "/api/r2/otp/verify",
             $headers,
             $body,
+            false,
             false
         );
 

@@ -35,7 +35,8 @@ class BIDVerifyDocument
                 $url,
                 array("Content-Type" => "application/json", "charset" => "utf-8"),
                 null,
-                false
+                false,
+                true
             );
 
             InMemCache::set(json_encode($response), $url, self::$ttl);
@@ -84,7 +85,8 @@ class BIDVerifyDocument
             $sd["docuverify"] . "/verify",
             $headers,
             $encryptedData,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -146,7 +148,8 @@ class BIDVerifyDocument
             $sd["docuverify"] . "/document_share_session/create",
             $headers,
             $encryptedData,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -195,7 +198,8 @@ class BIDVerifyDocument
             $sd["docuverify"] . "/document_share_session/result",
             $headers,
             $encryptedData,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {

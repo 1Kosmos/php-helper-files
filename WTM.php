@@ -10,7 +10,7 @@
 class WTM
 {
 
-    public static function executeRequest($method, $url, $headers, $body, $debug) {
+    public static function executeRequest($method, $url, $headers, $body, $debug, $keepAlive) {
 
         $debug_curl = false;
         if (isset($debug)) {
@@ -26,7 +26,11 @@ class WTM
                 array_push($curl_headers, $key . ": " . $value);
             }
         }
-    
+
+        if($keepAlive){
+            array_push($curl_headers, 'Connection: Keep-Alive');
+        }
+        
         $options = array(
           CURLOPT_URL => $url,
           CURLOPT_RETURNTRANSFER => true,
@@ -65,7 +69,7 @@ class WTM
         return json_decode($response, TRUE);	
     }
 
-    public static function executeRequestV2($method, $url, $headers, $body, $debug) {
+    public static function executeRequestV2($method, $url, $headers, $body, $debug, $keepAlive) {
 
         $debug_curl = false;
         if (isset($debug)) {
@@ -80,6 +84,10 @@ class WTM
             foreach ($headers as $key => $value){
                 array_push($curl_headers, $key . ": " . $value);
             }
+        }
+
+        if($keepAlive){
+            array_push($curl_headers, 'Connection: Keep-Alive');
         }
     
         $options = array(

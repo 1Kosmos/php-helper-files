@@ -31,7 +31,8 @@ class BIDVerifiableCredential
                 $pubicKeyUrl,
                 array("Content-Type" => "application/json", "charset" => "utf-8"),
                 null,
-                false
+                false,
+                true
             );
 
             InMemCache::set(json_encode($response), $pubicKeyUrl, self::$ttl);
@@ -78,7 +79,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vc/from/document/" . $type,
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -127,7 +129,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vc/from/payload/" . $type,
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -172,7 +175,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vc/verify",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -221,7 +225,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vp/create",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -267,7 +272,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vp/verify",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -308,7 +314,8 @@ class BIDVerifiableCredential
             $sd["vcs"] . "/tenant/" . $communityInfo["tenant"]["id"] . "/community/" . $communityInfo["community"]["id"] . "/vc/" . $vcId . "/status",
             $headers,
             null,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -340,7 +347,8 @@ class BIDVerifiableCredential
             $downloadUri,
             $headers,
             null,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
@@ -383,7 +391,8 @@ class BIDVerifiableCredential
             $serviceUrl . "/tenant/" . $vc["issuer"]["tenantId"] . "/community/" . $vc["issuer"]["communityId"] . "/vp/verify",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret["response"])) {
