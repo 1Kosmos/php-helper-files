@@ -23,7 +23,8 @@ class BIDOauth2
 
         $headers = array(
             "Content-Type: application/x-www-form-urlencoded",
-            "charset: utf-8", "Accept: application/json"
+            "charset: utf-8", "Accept: application/json",
+            "Connection: Keep-Alive"
         );
 
         $req = array(
@@ -100,7 +101,8 @@ class BIDOauth2
 
         $headers = array(
             "Content-Type: application/x-www-form-urlencoded",
-            "charset: utf-8", "Accept: application/json"
+            "charset: utf-8", "Accept: application/json",
+            "Connection: Keep-Alive"
         );
 
         $req = array(

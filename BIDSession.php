@@ -37,7 +37,8 @@ class BIDSession
                 $url,
                 array("Content-Type" => "application/json", "charset" => "utf-8"),
                 null,
-                false
+                false,
+                true
             );
 
             InMemCache::set(json_encode($response), $url, self::$ttl);
@@ -90,7 +91,8 @@ class BIDSession
             $sd["sessions"] . "/session/new",
             $headers,
             $body,
-            false
+            false,
+            true
         );
 
         if (isset($ret) && isset($ret["sessionId"])) {
@@ -129,7 +131,8 @@ class BIDSession
             $sd["sessions"] . "/session/" . $sessionId . "/response",
             $headers,
             null,
-            false
+            false,
+            true
         );
 
         $ret = null;

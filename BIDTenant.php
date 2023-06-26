@@ -122,7 +122,7 @@ class BIDTenant
             "charset" => "utf-8"
         );
 
-        $communityInfo =  WTM::executeRequest("POST", $url, $headers, $req_body, false);
+        $communityInfo =  WTM::executeRequest("POST", $url, $headers, $req_body, false, false);
 
         $this->cacheMe($communityCacheKey, $communityInfo);
 
@@ -157,7 +157,7 @@ class BIDTenant
             "charset" => "utf-8"
         );
 
-        $sd =  WTM::executeRequest("GET", $sdUrl, $headers, null, false);
+        $sd =  WTM::executeRequest("GET", $sdUrl, $headers, null, false, false);
 
         $this->cacheMe($sdCacheKey, $sd);
 

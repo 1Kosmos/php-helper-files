@@ -76,6 +76,7 @@ class BIDAccessCode
             $sd["adminconsole"] . "/api/r2/acr/community/" . $communityInfo["community"]["name"] . "/code",
             $headers,
             $encryptedData,
+            false,
             false
         );
 
@@ -117,6 +118,7 @@ class BIDAccessCode
             $sd["adminconsole"] . "/api/r1/acr/community/" . $communityInfo["community"]["name"] . "/" . $code,
             $headers,
             null,
+            false,
             false
         );
 
@@ -188,6 +190,7 @@ class BIDAccessCode
             $sd["adminconsole"] . "/api/r1/acr/community/" . $communityInfo["community"]["name"] . "/" . $code . "/redeem",
             $headers,
             $body,
+            false,
             false
         );
 

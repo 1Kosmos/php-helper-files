@@ -51,6 +51,7 @@ class BIDMessaging
             $sd["adminconsole"] . "/api/r2/messaging/schedule",
             $headers,
             $body,
+            false,
             false
         );
 

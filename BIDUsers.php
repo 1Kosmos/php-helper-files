@@ -52,6 +52,7 @@ class BIDUsers
             $url,
             $headers,
             null,
+            false,
             false
         );
 
