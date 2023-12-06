@@ -10,6 +10,18 @@
 class WTM
 {
 
+    public static function createRequestID($requestId = null) {
+        $uuid = isset($requestId["uuid"]) ? $requestId["uuid"] : uniqid();
+    
+        $requestId = [
+            "appId" => "blockid.php.sdk",
+            "uuid" => $uuid,
+            "ts" => time()
+        ];
+    
+        return $requestId;
+    }
+
     public static function executeRequest($method, $url, $headers, $body, $debug, $keepAlive) {
 
         $debug_curl = false;
