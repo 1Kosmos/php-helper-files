@@ -10,20 +10,18 @@
 require_once("./BIDTenant.php");
 require_once("./BIDECDSA.php");
 require_once("./BIDUsers.php");
+require_once("./BIDEvents.php");
 require_once("./WTM.php");
 require_once("./InMemCache.php");
 
 class BIDSession
 {
 
-    private static $ttl = 60;
+    private static $ttl = 86400; // Cashing public key for 24 hours
 
-    private static function getSessionPublicKey($tenantInfo)
+    private static function getSessionPublicKey($baseUrl)
     {
-        $bidTenant      = BIDTenant::getInstance();
-        $sd             = $bidTenant->getSD($tenantInfo);
-
-        $url = $sd["sessions"] . "/publickeys";
+        $url = $baseUrl . "/publickeys";
 
         $response = null;
         $responseStr = InMemCache::get($url);
@@ -47,8 +45,9 @@ class BIDSession
         return $response["publicKey"];
     }
 
-    public static function createNewSession($tenantInfo, $authType, $scopes)
+    public static function createNewSession($tenantInfo, $authType, $scopes, $metadata, $requestIdOrNull)
     {
+        $requestId      = isset($requestIdOrNull) ? $requestIdOrNull : WTM::createRequestID();
         $bidTenant      = BIDTenant::getInstance();
         $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
 
@@ -56,7 +55,7 @@ class BIDSession
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $sessionsPublicKey = self::getSessionPublicKey($tenantInfo);
+        $sessionsPublicKey = self::getSessionPublicKey($sd["sessions"]);
 
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $sessionsPublicKey);
 
@@ -69,13 +68,8 @@ class BIDSession
                 "authPage" => "blockid://authenticate"
             ),
             "scopes" => (isset($scopes) ? $scopes : ""),
-            "authtype" => (isset($authType) ? $authType : "none")
-        );
-
-        $requestid = array(
-            "appId" => "blockid.php.sdk",
-            "uuid" => uniqid(),
-            "ts" => time()
+            "authtype" => (isset($authType) ? $authType : "none"),
+            "metadata" => $metadata
         );
 
         $headers = array(
@@ -83,7 +77,7 @@ class BIDSession
             "charset" => "utf-8",
             "publickey" => $keySet["publicKey"],
             "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
-            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+            "requestid" => BIDECDSA::encrypt(json_encode($requestId), $sharedKey)
         );
 
         $ret = WTM::executeRequest(
@@ -101,29 +95,25 @@ class BIDSession
         return $ret;
     }
 
-    public static function pollSession($tenantInfo, $sessionId, $fetchProfile, $fetchDevices)
+    public static function pollSession($tenantInfo, $sessionId, $fetchProfile, $fetchDevices, $eventDataOrNull, $requestIdOrNull)
     {
+        $requestId      = isset($requestIdOrNull) ? $requestIdOrNull : WTM::createRequestID();
         $bidTenant      = BIDTenant::getInstance();
+        $communityInfo  = $bidTenant->getCommunityInfo($tenantInfo);
         $keySet         = $bidTenant->getKeySet();
         $licenseKey     = $tenantInfo["licenseKey"];
         $sd             = $bidTenant->getSD($tenantInfo);
 
-        $sessionsPublicKey = self::getSessionPublicKey($tenantInfo);
-
+        $sessionsPublicKey = self::getSessionPublicKey($sd["sessions"]);
         $sharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $sessionsPublicKey);
-
-        $requestid = array(
-            "appId" => "blockid.php.sdk",
-            "uuid" => uniqid(),
-            "ts" => time()
-        );
 
         $headers = array(
             "Content-Type" => "application/json",
             "charset" => "utf-8",
             "publickey" => $keySet["publicKey"],
             "licensekey" => BIDECDSA::encrypt($licenseKey, $sharedKey),
-            "requestid" => BIDECDSA::encrypt(json_encode($requestid), $sharedKey)
+            "requestid" => BIDECDSA::encrypt(json_encode($requestId), $sharedKey),
+            "addsessioninfo" => 1
         );
 
         $response = WTM::executeRequestV2(
@@ -139,21 +129,34 @@ class BIDSession
         if (isset($response)) {
             $status = $response["statusCode"];
             if ($status != 200) {
-                $ret = array(
+                
+                return array(
                     "status" => $status,
                     "message" => $response["response"]
                 );
-
-                return $ret;
             }
 
             $ret = json_decode($response["response"], TRUE);
             $ret["status"] = $status;
 
-            if (isset($ret["data"])) {
-                $clientSharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $ret["publicKey"]);
-                $dec_data = BIDECDSA::decrypt($ret["data"], $clientSharedKey);
-                $ret["user_data"] = json_decode($dec_data, TRUE);
+            if (!isset($ret["data"])) {
+                
+                return array(
+                    "status" => 401,
+                    "message" => "Session data not found"
+                );
+            }
+            
+            $clientSharedKey = BIDECDSA::createSharedKey($keySet["privateKey"], $ret["publicKey"]);
+            $dec_data = BIDECDSA::decrypt($ret["data"], $clientSharedKey);
+            $ret["user_data"] = json_decode($dec_data, TRUE);
+
+            if (!array_key_exists("did", $ret["user_data"])) {
+                
+                return array(
+                    "status" => 401,
+                    "message" => "Unauthorized user"
+                );
             }
         }
 
@@ -161,6 +164,56 @@ class BIDSession
             $ret["account_data"] = BIDUsers::fetchUserByDID($tenantInfo, $ret["user_data"]["did"], $fetchDevices);
         }
 
+        // check if authenticator response is authorized.
+        $userIdList = isset($ret["account_data"]) ? $ret["account_data"]["userIdList"] : [];
+        if (!empty($userIdList) && isset($ret["user_data"]["userid"])) {
+            $ret["user_data"]["userid"] = $userIdList[0];
+        }
+
+        if (in_array($ret["user_data"]["userid"], $userIdList)) {
+            $ret["isValid"] = true;
+        } else { // This covers when the userid is not found in userIdList
+            // This covers when userIdList is empty or does not contain the user ID
+            $ret["status"] = 401;
+            $ret["isValid"] = false;
+            $ret["message"] = "Unauthorized user";
+        }
+
+        $session_purpose = isset($ret['sessionInfo']['metadata']['purpose']) ? $ret['sessionInfo']['metadata']['purpose'] : null;
+        
+        // Report Event
+        if ($session_purpose === "authentication") {
+            $eventData = array(
+                "tenant_dns" => $tenantInfo['dns'],
+                "tenant_tag" => $communityInfo['tenant']['tenanttag'],
+                "service_name" => "NodeJS Helper",
+                "auth_method" => "qr",
+                "type" => "event",
+                "event_id" => uniqid(),
+                "version" => "v1",
+                "session_id" => $sessionId,
+                "did" => $ret['user_data']['did'],
+                "auth_public_key" => $ret['publicKey'],
+                "user_id" => $ret['user_data']['userid'],
+                "login_state" => "SUCCESS",
+            );
+
+            if (is_array($eventDataOrNull)) {
+                $eventData = array_merge($eventData, $eventDataOrNull);
+            }
+
+            $eventName = $ret['isValid'] ? "E_LOGIN_SUCCEEDED" : "E_LOGIN_FAILED";
+            
+            if (!$ret['isValid']) {
+                $eventData['reason'] = array(
+                    "reason" => "User not found in PON data"
+                );
+                $eventData['login_state'] = "FAILED";
+            }
+            
+            BIDEvents::logEvent($tenantInfo, $eventName, $eventData, $requestId);
+        }
+        
         return $ret;
     }
 }
